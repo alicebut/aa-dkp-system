@@ -31,6 +31,16 @@ type ArchetypeQueryRow = Pick<
   | "specialization_3"
 >;
 
+const SCANNER_START_NOTE = /^начало с \d{1,2}:\d{2}$/;
+
+export function stripStartNote(comment: string | null | undefined) {
+  if (comment === null || comment === undefined) return undefined;
+  return comment
+    .split("; ")
+    .filter((note) => !SCANNER_START_NOTE.test(note.trim()))
+    .join("; ");
+}
+
 // Черновик из сканера: оставляет только пользователей сайта на нужных ролях
 // (по умолчанию ДД).
 // Роль определяется по трём веткам из сканера (слот архетипа), иначе основная.
@@ -82,6 +92,7 @@ export async function filterScannerRows(
         role,
         userId: user.id,
         avatarUrl: user.avatar_url,
+        comment: stripStartNote(row.comment),
       };
       kept.push(
         user.username === row.userName
@@ -89,7 +100,7 @@ export async function filterScannerRows(
           : {
               ...resolved,
               userName: user.username,
-              comment: [row.comment, `ник в игре: ${row.userName}`]
+              comment: [resolved.comment, `ник в игре: ${row.userName}`]
                 .filter(Boolean)
                 .join("; "),
             },

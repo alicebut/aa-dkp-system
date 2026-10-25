@@ -65,7 +65,7 @@ export async function getHealcountRecords(): Promise<HealcountRecord[]> {
       kind: parseRecordKind(record.kind),
       day: record.started_at.slice(0, 10),
       window,
-      fighters: withStartTimes(heals.rows, doc.rows),
+      fighters: withStartTimes(heals.rows, doc.rows, record.started_at),
     });
   }
   return healRecords;

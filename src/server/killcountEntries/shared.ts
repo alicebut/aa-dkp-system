@@ -19,6 +19,7 @@ import type {
 } from "./types";
 
 const LINK_TOLERANCE_MS = 30 * 60_000;
+const LATE_NOTE_MS = 30 * 60_000;
 
 export function toWindow(
   startedAt: string | null,
@@ -40,24 +41,43 @@ export function startTimes(rows: ScannerKillcountRow[]) {
   return byName;
 }
 
+export function withLateNote(
+  comment: string | undefined,
+  startAt: string | null,
+  windowStartedAt: string | null,
+) {
+  if (!startAt || !windowStartedAt) return comment;
+  const lateMs =
+    parseMoscowISOString(startAt).getTime() -
+    parseMoscowISOString(windowStartedAt).getTime();
+  if (lateMs < LATE_NOTE_MS) return comment;
+  const note = `начало с ${startAt.slice(11, 16)}`;
+  return comment ? `${comment}; ${note}` : note;
+}
+
 export function withStartTimes(
   resolved: KillCount[],
   raw: ScannerKillcountRow[],
+  windowStartedAt: string,
 ): KillcountFighter[] {
   const byName = startTimes(raw);
-  return resolved.map((row) => ({
-    ...row,
-    startAt:
+  return resolved.map((row) => {
+    const startAt =
       byName.get(row.userName) ??
       row.aliases?.map((alias) => byName.get(alias)).find(Boolean) ??
-      null,
-  }));
+      null;
+    return {
+      ...row,
+      startAt,
+      comment: withLateNote(row.comment, startAt, windowStartedAt),
+    };
+  });
 }
 
 export async function recordFighters(record: RecordQueryRow) {
   const doc = parseKillcountDoc(record.killcount);
   const resolved = await filterScannerRows(doc.rows);
-  return withStartTimes(resolved.rows, doc.rows);
+  return withStartTimes(resolved.rows, doc.rows, record.started_at);
 }
 
 export function raidSelect(type: string) {

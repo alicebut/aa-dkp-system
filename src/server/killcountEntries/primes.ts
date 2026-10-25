@@ -1,7 +1,14 @@
 import "server-only";
 import sql from "@/shared/lib/db";
+import { stripStartNote } from "@/server/killcountScanner";
 import { parseKillcountDoc } from "@/server/scanner/record";
-import { linkRaid, raidsOfDay, startTimes, toWindow } from "./shared";
+import {
+  linkRaid,
+  raidsOfDay,
+  startTimes,
+  toWindow,
+  withLateNote,
+} from "./shared";
 import type { KillcountEntry, RecordQueryRow } from "./types";
 
 type FighterQueryRow = {
@@ -53,20 +60,27 @@ export async function getPrimeDay(day: string): Promise<KillcountEntry> {
     key: day,
     day,
     window,
-    fighters: rows.map((row) => ({
-      id: row.id,
-      userId: row.userId,
-      userName: row.userName,
-      role: row.role,
-      avatarUrl: row.avatarUrl,
-      playerClass: row.playerClass,
-      startHonor: row.startHonor,
-      endHonor: row.endHonor,
-      startKills: row.startKills,
-      endKills: row.endKills,
-      comment: row.comment ?? undefined,
-      startAt: startAtByName.get(row.userName) ?? null,
-    })),
+    fighters: rows.map((row) => {
+      const startAt = startAtByName.get(row.userName) ?? null;
+      return {
+        id: row.id,
+        userId: row.userId,
+        userName: row.userName,
+        role: row.role,
+        avatarUrl: row.avatarUrl,
+        playerClass: row.playerClass,
+        startHonor: row.startHonor,
+        endHonor: row.endHonor,
+        startKills: row.startKills,
+        endKills: row.endKills,
+        comment: withLateNote(
+          stripStartNote(row.comment),
+          startAt,
+          record?.started_at ?? null,
+        ),
+        startAt,
+      };
+    }),
     raids: raids.map((raid) => linkRaid(raid, window)),
     canEditRows: true,
   };

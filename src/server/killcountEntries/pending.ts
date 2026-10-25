@@ -44,7 +44,7 @@ export async function getPendingRecords(): Promise<PendingRecord[]> {
       inRaid: raid
         ? raid.members.filter((member) => member.in_guild !== false).length
         : null,
-      fighters: withStartTimes(resolved.rows, doc.rows),
+      fighters: withStartTimes(resolved.rows, doc.rows, record.started_at),
       excluded: [
         ...resolved.excluded,
         ...doc.excluded.map((item) => ({
