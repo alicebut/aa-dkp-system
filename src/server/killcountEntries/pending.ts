@@ -7,7 +7,9 @@ import {
   parseRaidDoc,
   parseRecordKind,
   type RecordKind,
+  type ScannerKillcountExclusion,
 } from "@/server/scanner/record";
+import { formatNumber } from "@/shared/lib/format";
 import { parseMoscowISOString } from "@/utils/getMoscowISOString";
 import { toWindow, withStartTimes } from "./shared";
 import type { PendingRecord, RecordQueryRow } from "./types";
@@ -49,7 +51,7 @@ export async function getPendingRecords(): Promise<PendingRecord[]> {
         ...resolved.excluded,
         ...doc.excluded.map((item) => ({
           userName: item.name,
-          reason: item.reason,
+          reason: scannerReason(item),
         })),
       ],
       warnings: doc.warnings,
@@ -57,6 +59,13 @@ export async function getPendingRecords(): Promise<PendingRecord[]> {
     });
   }
   return pending;
+}
+
+function scannerReason(item: ScannerKillcountExclusion) {
+  if (item.startHonor === undefined || item.startKills === undefined) {
+    return item.reason;
+  }
+  return `${item.reason}; на начало честь ${formatNumber(item.startHonor)}, убийства ${formatNumber(item.startKills)}`;
 }
 
 async function blockedReason(

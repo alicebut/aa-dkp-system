@@ -42,9 +42,17 @@ const KILLCOUNT_ROW_SCHEMA = v.object({
   comment: v.optional(v.string()),
 });
 
+const KILLCOUNT_EXCLUSION_SCHEMA = v.object({
+  name: v.string(),
+  reason: v.string(),
+  startHonor: v.optional(COUNTER),
+  startKills: v.optional(COUNTER),
+  startAt: v.optional(ISO_TIME),
+});
+
 const KILLCOUNT_DOC_SCHEMA = v.object({
   rows: v.array(KILLCOUNT_ROW_SCHEMA),
-  excluded: v.array(v.object({ name: v.string(), reason: v.string() })),
+  excluded: v.array(KILLCOUNT_EXCLUSION_SCHEMA),
   warnings: v.array(v.string()),
 });
 
@@ -73,6 +81,7 @@ export type ScannerRecordDoc = v.InferOutput<typeof SCANNER_RECORD_SCHEMA>;
 export type ScannerRaidDoc = v.InferOutput<typeof RAID_DOC_SCHEMA>;
 export type ScannerKillcountDoc = v.InferOutput<typeof KILLCOUNT_DOC_SCHEMA>;
 export type ScannerKillcountRow = ScannerKillcountDoc["rows"][number];
+export type ScannerKillcountExclusion = ScannerKillcountDoc["excluded"][number];
 export type RecordKind = ScannerRecordDoc["kind"];
 
 export function parseRecordKind(value: string): RecordKind {
