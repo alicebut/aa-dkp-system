@@ -20,6 +20,7 @@ import {
   timeOf,
   totalKills,
 } from "./killcountEntriesModel";
+import MissingEndList from "./MissingEndList";
 
 type Props = {
   record: PendingRecord;
@@ -110,6 +111,7 @@ export default function PendingRecordCard({ record }: Props) {
           </Button>
         </div>
       </div>
+      <MissingEndList record={record} />
       {record.kind === "prime" && (
         <p className="text-xs text-muted-foreground">
           После публикации киллкаунт появится на «Сегодня» и в истории, уйдёт

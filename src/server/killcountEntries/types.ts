@@ -44,6 +44,13 @@ export type AglItem = {
   record: AglRecordSummary | null;
 };
 
+export type MissingEndFighter = {
+  userName: string;
+  reason: string;
+  startHonor: number;
+  startKills: number;
+};
+
 export type PendingRecord = {
   id: number;
   kind: RecordKind;
@@ -52,6 +59,7 @@ export type PendingRecord = {
   inRaid: number | null;
   fighters: KillcountFighter[];
   excluded: KillCountExclusion[];
+  missingEnd: MissingEndFighter[];
   warnings: string[];
   blockedReason: string | null;
 };

@@ -9,10 +9,9 @@ import {
   type RecordKind,
   type ScannerKillcountExclusion,
 } from "@/server/scanner/record";
-import { formatNumber } from "@/shared/lib/format";
 import { parseMoscowISOString } from "@/utils/getMoscowISOString";
 import { toWindow, withStartTimes } from "./shared";
-import type { PendingRecord, RecordQueryRow } from "./types";
+import type { MissingEndFighter, PendingRecord, RecordQueryRow } from "./types";
 
 export async function getPendingRecords(): Promise<PendingRecord[]> {
   const records = await sql<RecordQueryRow[]>`
@@ -38,6 +37,7 @@ export async function getPendingRecords(): Promise<PendingRecord[]> {
       record.username,
     );
     if (!window) continue;
+    const missingEnd = doc.excluded.flatMap(toMissingEnd);
     pending.push({
       id: record.id,
       kind,
@@ -49,11 +49,14 @@ export async function getPendingRecords(): Promise<PendingRecord[]> {
       fighters: withStartTimes(resolved.rows, doc.rows, record.started_at),
       excluded: [
         ...resolved.excluded,
-        ...doc.excluded.map((item) => ({
-          userName: item.name,
-          reason: scannerReason(item),
-        })),
+        ...doc.excluded
+          .filter(
+            (item) =>
+              !missingEnd.some((fighter) => fighter.userName === item.name),
+          )
+          .map((item) => ({ userName: item.name, reason: item.reason })),
       ],
+      missingEnd,
       warnings: doc.warnings,
       blockedReason: await blockedReason(kind, day, resolved.rows.length),
     });
@@ -61,11 +64,22 @@ export async function getPendingRecords(): Promise<PendingRecord[]> {
   return pending;
 }
 
-function scannerReason(item: ScannerKillcountExclusion) {
-  if (item.startHonor === undefined || item.startKills === undefined) {
-    return item.reason;
+function toMissingEnd(item: ScannerKillcountExclusion): MissingEndFighter[] {
+  if (
+    item.startHonor === undefined ||
+    item.startKills === undefined ||
+    item.startAt === undefined
+  ) {
+    return [];
   }
-  return `${item.reason}; на начало честь ${formatNumber(item.startHonor)}, убийства ${formatNumber(item.startKills)}`;
+  return [
+    {
+      userName: item.name,
+      reason: item.reason,
+      startHonor: item.startHonor,
+      startKills: item.startKills,
+    },
+  ];
 }
 
 async function blockedReason(

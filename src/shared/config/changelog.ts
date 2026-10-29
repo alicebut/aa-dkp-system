@@ -12,6 +12,15 @@ export type ChangelogDay = {
 
 export const changelog: ChangelogDay[] = [
   {
+    date: "2026-10-29",
+    entries: [
+      {
+        type: "feature",
+        text: "Киллкаунт из сканера: тем, у кого нет данных на конец, можно ввести честь и убийства вручную до публикации",
+      },
+    ],
+  },
+  {
     date: "2026-10-27",
     entries: [
       {

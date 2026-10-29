@@ -1,6 +1,7 @@
 import type {
   AglItem,
   KillcountFighter,
+  MissingEndFighter,
   ScanWindow,
 } from "@/server/killcountEntries/types";
 import { formatDuration, formatNumber, plural } from "@/shared/lib/format";
@@ -50,6 +51,10 @@ export function windowText(window: ScanWindow) {
 
 export function playersText(count: number) {
   return `${count} ${plural(count, "игрок", "игрока", "игроков")}`;
+}
+
+export function startValuesText(fighter: MissingEndFighter) {
+  return `на начало честь ${formatNumber(fighter.startHonor)}, убийства ${formatNumber(fighter.startKills)}`;
 }
 
 export function totalKills(fighters: KillcountFighter[]) {
