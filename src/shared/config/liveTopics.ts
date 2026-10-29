@@ -8,6 +8,7 @@ export const LIVE_TOPICS = [
   "notifications",
   "finance",
   "members",
+  "council",
 ] as const;
 
 export type LiveTopic = (typeof LIVE_TOPICS)[number];

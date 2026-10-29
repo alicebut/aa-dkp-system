@@ -157,6 +157,20 @@ export type CalculatorShareRow = {
   created_at: string;
 };
 
+export type CouncilMarkRow = {
+  user_id: number;
+  day: string;
+  task_id: string;
+  count: number;
+  updated_at: string;
+};
+
+export type CouncilProgressRow = {
+  user_id: number;
+  merits: number | null;
+  updated_at: string;
+};
+
 export type EventSettingsRow = {
   id: number;
   title: string | null;

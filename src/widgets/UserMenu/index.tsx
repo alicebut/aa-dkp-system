@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, Eye, EyeOff, LogOut, Moon, Volume2 } from "lucide-react";
+import {
+  ChevronDown,
+  Crown,
+  Eye,
+  EyeOff,
+  LogOut,
+  Moon,
+  Volume2,
+} from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -24,9 +32,14 @@ import { useViewAsPlayer } from "./useViewAsPlayer";
 type Props = {
   isRealAdmin: boolean;
   viewingAsRegular: boolean;
+  canSeeCouncil: boolean;
 };
 
-export default function UserMenu({ isRealAdmin, viewingAsRegular }: Props) {
+export default function UserMenu({
+  isRealAdmin,
+  viewingAsRegular,
+  canSeeCouncil,
+}: Props) {
   const user = useCurrentUser();
   const theme = useDarkTheme();
   const sound = useSoundNotificationsEnabled();
@@ -67,6 +80,14 @@ export default function UserMenu({ isRealAdmin, viewingAsRegular }: Props) {
             </span>
           </Link>
         </DropdownMenuItem>
+        {canSeeCouncil && (
+          <DropdownMenuItem asChild className="cursor-pointer py-2">
+            <Link href="/council">
+              <Crown />
+              Путь в совет
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <MenuSwitchItem
           icon={<Moon />}

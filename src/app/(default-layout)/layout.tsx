@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SidebarProvider, Toaster } from "@/shared/ui";
 import { getSessionUserId } from "@/actions/getSessionUserId";
 import { hasTag } from "@/actions/hasTag";
+import { canOpenCouncilChecklist } from "@/server/councilAccess";
 import { canSeeHealcount } from "@/server/healcount";
 import { SCANNER_USER_TAGS } from "@/server/scanner/auth";
 import { getActivePromoLink } from "@/server/promo";
@@ -35,6 +36,7 @@ export default async function DefaultLayout({
     ignorePreview: true,
   });
   const viewingAsRegular = isRealAdmin && !isAdmin;
+  const canSeeCouncil = await canOpenCouncilChecklist();
   const promo = await getActivePromoLink();
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
@@ -81,6 +83,7 @@ export default async function DefaultLayout({
                 <UserMenu
                   isRealAdmin={isRealAdmin}
                   viewingAsRegular={viewingAsRegular}
+                  canSeeCouncil={canSeeCouncil}
                 />
               </div>
             </div>
