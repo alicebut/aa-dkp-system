@@ -6,6 +6,7 @@ import type { ScannerRecordRow } from "@/shared/lib/dbTypes";
 import { KILLCOUNT_EDITOR_TAGS } from "@/server/killcountEditors";
 import { parseKillcountDoc } from "@/server/scanner/record";
 import { parseMoscowISOString } from "@/utils/getMoscowISOString";
+import { lookupClassSpecs } from "@/widgets/profile/archetype/classCombinations";
 import ensurePrivilieges from "./ensurePrivilieges";
 
 const COUNTER = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -13,11 +14,10 @@ const COUNTER = v.pipe(v.number(), v.integer(), v.minValue(0));
 const END_VALUES_SCHEMA = v.object({
   recordId: v.pipe(v.number(), v.integer()),
   userName: v.pipe(v.string(), v.minLength(1)),
+  playerClass: v.pipe(v.string(), v.maxLength(64)),
   endHonor: COUNTER,
   endKills: COUNTER,
 });
-
-const MANUAL_END_NOTE = "конец введён вручную";
 
 type RecordQueryRow = Pick<ScannerRecordRow, "ended_at" | "killcount">;
 
@@ -25,7 +25,7 @@ export async function fillScannerRecordEnd(
   input: v.InferInput<typeof END_VALUES_SCHEMA>,
 ) {
   await ensurePrivilieges(KILLCOUNT_EDITOR_TAGS);
-  const { recordId, userName, endHonor, endKills } = v.parse(
+  const { recordId, userName, playerClass, endHonor, endKills } = v.parse(
     END_VALUES_SCHEMA,
     input,
   );
@@ -56,14 +56,14 @@ export async function fillScannerRecordEnd(
     const row = {
       id: Math.max(0, ...doc.rows.map((fighter) => fighter.id)) + 1,
       userName,
-      playerClass: "",
+      playerClass,
+      specs: lookupClassSpecs(playerClass) ?? undefined,
       startHonor: missing.startHonor,
       endHonor,
       startKills: missing.startKills,
       endKills,
       startAt: missing.startAt,
       endAt: parseMoscowISOString(record.ended_at).toISOString(),
-      comment: MANUAL_END_NOTE,
     };
     const killcount = {
       ...doc,

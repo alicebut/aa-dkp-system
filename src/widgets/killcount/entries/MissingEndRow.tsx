@@ -9,7 +9,16 @@ import { fillScannerRecordEnd } from "@/actions/fillScannerRecordEnd";
 import type { MissingEndFighter } from "@/server/killcountEntries/types";
 import { v } from "@/shared/lib";
 import { errorMessage } from "@/shared/lib/errorMessage";
-import { Button, Form, InputField } from "@/shared/ui";
+import {
+  BaseFormField,
+  Button,
+  Form,
+  FormControl,
+  FormItem,
+  FormLabel,
+  InputField,
+} from "@/shared/ui";
+import ClassCombobox from "./ClassCombobox";
 import { startValuesText } from "./killcountEntriesModel";
 
 type Props = {
@@ -20,6 +29,7 @@ type Props = {
 export default function MissingEndRow({ recordId, fighter }: Props) {
   const router = useRouter();
   const schema = v.object({
+    playerClass: v.string(),
     endHonor: v.pipe(
       v.number(),
       v.minValue(fighter.startHonor, "Меньше, чем на начало"),
@@ -32,6 +42,7 @@ export default function MissingEndRow({ recordId, fighter }: Props) {
   const form = useForm<v.InferInput<typeof schema>>({
     resolver: valibotResolver(schema),
     defaultValues: {
+      playerClass: "",
       endHonor: fighter.startHonor,
       endKills: fighter.startKills,
     },
@@ -62,6 +73,23 @@ export default function MissingEndRow({ recordId, fighter }: Props) {
           <p className="text-xs text-muted-foreground">
             {fighter.reason}; {startValuesText(fighter)}
           </p>
+        </div>
+        <div className="w-48">
+          <BaseFormField
+            control={form.control}
+            name="playerClass"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Класс</FormLabel>
+                <FormControl>
+                  <ClassCombobox
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
         </div>
         <div className="w-32">
           <InputField

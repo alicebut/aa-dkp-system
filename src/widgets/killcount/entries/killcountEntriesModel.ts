@@ -6,6 +6,7 @@ import type {
 } from "@/server/killcountEntries/types";
 import { formatDuration, formatNumber, plural } from "@/shared/lib/format";
 import { parseMoscowISOString } from "@/utils/getMoscowISOString";
+import { CLASS_NAME_BY_COMBO } from "@/widgets/profile/archetype/classCombinations";
 import { honor, kills } from "../ui/killcountModel";
 
 export type EntryKind = "prime" | "agl";
@@ -23,6 +24,10 @@ export const KIND_LABEL: Record<EntryKind, string> = {
   prime: "Прайм",
   agl: "АГЛ",
 };
+
+export const CLASS_NAMES = [
+  ...new Set(Object.values(CLASS_NAME_BY_COMBO)),
+].sort((a, b) => a.localeCompare(b, "ru"));
 
 const MINUTE_MS = 60_000;
 
