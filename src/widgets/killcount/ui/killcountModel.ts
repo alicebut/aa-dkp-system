@@ -83,3 +83,26 @@ export function parseKillcountJson(value: string): KillCount[] | null {
     return null;
   }
 }
+
+const SCANNER_RECORD_FORMAT = "corvus-record/1";
+
+export function isScannerRecordJson(value: string): boolean {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return false;
+  }
+  return (
+    typeof parsed === "object" &&
+    parsed !== null &&
+    "format" in parsed &&
+    parsed.format === SCANNER_RECORD_FORMAT
+  );
+}
+
+export function duplicateRecordMessage(status: string): string {
+  if (status === "published") return "Эта запись уже опубликована";
+  if (status === "dismissed") return "Эта запись уже была загружена и удалена";
+  return "Эта запись уже загружена и ждёт проверки";
+}

@@ -10,8 +10,9 @@ import {
   findUnknownKillCountUsers,
   prepareScannerKillCount,
 } from "../../api/scanner";
+import { useScannerRecordImport } from "../../useScannerRecordImport";
 import { KillcountDay } from "../KillcountDay";
-import { parseKillcountJson } from "../killcountModel";
+import { isScannerRecordJson, parseKillcountJson } from "../killcountModel";
 import { DraftNotices } from "./DraftNotices";
 
 type AddManualKillCountProps = {
@@ -36,6 +37,7 @@ export function AddManualKillCount({
   const [excluded, setExcluded] = useState<KillCountExclusion[]>([]);
   const [preparing, setPreparing] = useState(false);
   const prepareSeq = useRef(0);
+  const { isImporting, importRecord } = useScannerRecordImport();
 
   const namesKey = JSON.stringify(rows.map((row) => row.userName));
   const checking = checked.key !== namesKey;
@@ -90,6 +92,16 @@ export function AddManualKillCount({
       });
   };
 
+  const handleJsonChange = async (value: string) => {
+    setJsonInput(value);
+    if (isScannerRecordJson(value)) {
+      if (await importRecord(value)) onBack();
+      return;
+    }
+    const parsed = parseKillcountJson(value);
+    if (parsed) applyParsed(parsed);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -117,12 +129,8 @@ export function AddManualKillCount({
           placeholder="Вставьте JSON"
           aria-label="JSON киллкаунта"
           value={jsonInput}
-          onChange={(event) => {
-            const value = event.currentTarget.value;
-            setJsonInput(value);
-            const parsed = parseKillcountJson(value);
-            if (parsed) applyParsed(parsed);
-          }}
+          disabled={isImporting}
+          onChange={(event) => handleJsonChange(event.currentTarget.value)}
         />
         <Button
           className="cursor-pointer"

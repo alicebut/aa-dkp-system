@@ -1,5 +1,6 @@
 "use server";
 
+import * as v from "valibot";
 import sql from "@/shared/lib/db";
 import type { ScannerRecordRow, UserRow } from "@/shared/lib/dbTypes";
 import { KILLCOUNT_EDITOR_TAGS } from "@/server/killcountEditors";
@@ -10,8 +11,14 @@ import {
   parseKillcountDoc,
   parseRaidDoc,
   parseRecordKind,
+  recordIssueMessage,
+  SCANNER_RECORD_SCHEMA,
   type ScannerRaidDoc,
 } from "@/server/scanner/record";
+import {
+  saveScannerRecord,
+  type SavedScannerRecord,
+} from "@/server/scanner/saveRecord";
 import { parseMoscowISOString } from "@/utils/getMoscowISOString";
 import ensurePrivilieges from "./ensurePrivilieges";
 import { getSessionUserId } from "./getSessionUserId";
@@ -126,6 +133,24 @@ export async function publishScannerRecord(recordId: number) {
     `;
   });
   await notifyKillCountAdded(day);
+}
+
+export async function importScannerRecord(
+  json: string,
+): Promise<SavedScannerRecord> {
+  await ensurePrivilieges(KILLCOUNT_EDITOR_TAGS);
+  const userId = await getSessionUserId();
+  if (userId === null) throw new Error("Нужно войти на сайт");
+
+  let body: unknown;
+  try {
+    body = JSON.parse(json);
+  } catch {
+    throw new Error("Это не файл записи сканера");
+  }
+  const parsed = v.safeParse(SCANNER_RECORD_SCHEMA, body);
+  if (!parsed.success) throw new Error(recordIssueMessage(parsed.issues[0]));
+  return saveScannerRecord(parsed.output, userId);
 }
 
 export async function dismissScannerRecord(recordId: number) {

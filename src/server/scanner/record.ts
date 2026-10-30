@@ -84,6 +84,13 @@ export type ScannerKillcountRow = ScannerKillcountDoc["rows"][number];
 export type ScannerKillcountExclusion = ScannerKillcountDoc["excluded"][number];
 export type RecordKind = ScannerRecordDoc["kind"];
 
+export function recordIssueMessage(
+  issue: v.InferIssue<typeof SCANNER_RECORD_SCHEMA>,
+): string {
+  const path = v.getDotPath(issue) ?? "";
+  return `Некорректная запись: ${path} ${issue.message}`.trim();
+}
+
 export function parseRecordKind(value: string): RecordKind {
   return v.parse(v.picklist(["prime", "agl"]), value);
 }

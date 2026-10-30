@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import * as v from "valibot";
-import sql from "@/shared/lib/db";
-import type { ScannerRecordRow } from "@/shared/lib/dbTypes";
 import { getScannerUser } from "@/server/scanner/auth";
-import { moscowNaive, SCANNER_RECORD_SCHEMA } from "@/server/scanner/record";
+import {
+  recordIssueMessage,
+  SCANNER_RECORD_SCHEMA,
+} from "@/server/scanner/record";
+import { saveScannerRecord } from "@/server/scanner/saveRecord";
 
-type InsertedRow = Pick<ScannerRecordRow, "id" | "status">;
-
-// Сканер присылает запись рейда после «Закончить рейд». Повтор с тем же
-// client_id (отправка не дошла, сканер пробует снова) ничего не дублирует.
+// Сканер присылает запись рейда после «Закончить рейд».
 export async function POST(request: Request) {
   const user = await getScannerUser(request);
   if (!user) {
@@ -24,39 +23,11 @@ export async function POST(request: Request) {
 
   const parsed = v.safeParse(SCANNER_RECORD_SCHEMA, body);
   if (!parsed.success) {
-    const issue = parsed.issues[0];
-    const path = v.getDotPath(issue) ?? "";
     return NextResponse.json(
-      { error: `Некорректная запись: ${path} ${issue.message}`.trim() },
+      { error: recordIssueMessage(parsed.issues[0]) },
       { status: 400 },
     );
   }
-  const record = parsed.output;
 
-  const [inserted] = await sql<InsertedRow[]>`
-    INSERT INTO scanner_record (client_id, user_id, kind, started_at, ended_at, raid, killcount)
-    VALUES (
-      ${record.client_id},
-      ${user.id},
-      ${record.kind},
-      ${moscowNaive(record.started_at)},
-      ${moscowNaive(record.ended_at)},
-      ${record.raid === null ? null : sql.json(record.raid)},
-      ${record.killcount === null ? null : sql.json(record.killcount)}
-    )
-    ON CONFLICT (client_id) DO NOTHING
-    RETURNING id, status
-  `;
-  if (inserted) {
-    return NextResponse.json({ id: inserted.id, status: inserted.status });
-  }
-
-  const [existing] = await sql<InsertedRow[]>`
-    SELECT id, status FROM scanner_record WHERE client_id = ${record.client_id}
-  `;
-  return NextResponse.json({
-    id: existing.id,
-    status: existing.status,
-    duplicate: true,
-  });
+  return NextResponse.json(await saveScannerRecord(parsed.output, user.id));
 }

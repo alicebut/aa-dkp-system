@@ -9,6 +9,7 @@ import {
   getSelectedAglRecord,
 } from "@/server/killcountEntries";
 import { getMoscowISOString } from "@/utils/getMoscowISOString";
+import ImportRecordButton from "@/widgets/killcount/ImportRecordButton";
 import AglToday from "@/widgets/killcount/entries/AglToday";
 import KindSwitch from "@/widgets/killcount/entries/KindSwitch";
 import PendingRecordCard from "@/widgets/killcount/entries/PendingRecordCard";
@@ -45,6 +46,7 @@ export default async function KillCounterPage({ searchParams }: Props) {
       >
         <div className="flex flex-wrap items-center gap-3">
           <KindSwitch page="/kill-counter/current" kind={kind} />
+          {canEdit && <ImportRecordButton />}
           {canEdit && (
             <Link
               href="/scanner"
