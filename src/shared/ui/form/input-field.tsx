@@ -73,7 +73,9 @@ export const InputField: FC<InputFieldProps> = (props) => {
           }
 
           if (inputVariant === "integer") {
-            const numberValue = Number(inputValue?.match(/\d*/i)?.[0]);
+            const numberValue = Number(
+              inputValue?.replace(/\s/g, "").match(/\d*/i)?.[0],
+            );
 
             if (Number.isNaN(numberValue)) {
               return;

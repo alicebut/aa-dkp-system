@@ -51,6 +51,11 @@ export type MissingEndFighter = {
   startKills: number;
 };
 
+export type MissingStartFighter = {
+  userName: string;
+  reason: string;
+};
+
 export type PendingRecord = {
   id: number;
   kind: RecordKind;
@@ -60,6 +65,7 @@ export type PendingRecord = {
   fighters: KillcountFighter[];
   excluded: KillCountExclusion[];
   missingEnd: MissingEndFighter[];
+  missingStart: MissingStartFighter[];
   warnings: string[];
   blockedReason: string | null;
 };

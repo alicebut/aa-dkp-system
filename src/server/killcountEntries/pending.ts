@@ -38,6 +38,11 @@ export async function getPendingRecords(): Promise<PendingRecord[]> {
     );
     if (!window) continue;
     const missingEnd = doc.excluded.flatMap(toMissingEnd);
+    const missingStart = doc.excluded
+      .filter(
+        (item) => !missingEnd.some((fighter) => fighter.userName === item.name),
+      )
+      .map((item) => ({ userName: item.name, reason: item.reason }));
     pending.push({
       id: record.id,
       kind,
@@ -47,16 +52,9 @@ export async function getPendingRecords(): Promise<PendingRecord[]> {
         ? raid.members.filter((member) => member.in_guild !== false).length
         : null,
       fighters: withStartTimes(resolved.rows, doc.rows, record.started_at),
-      excluded: [
-        ...resolved.excluded,
-        ...doc.excluded
-          .filter(
-            (item) =>
-              !missingEnd.some((fighter) => fighter.userName === item.name),
-          )
-          .map((item) => ({ userName: item.name, reason: item.reason })),
-      ],
+      excluded: resolved.excluded,
       missingEnd,
+      missingStart,
       warnings: doc.warnings,
       blockedReason: await blockedReason(kind, day, resolved.rows.length),
     });

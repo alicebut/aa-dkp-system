@@ -21,6 +21,7 @@ import {
   totalKills,
 } from "./killcountEntriesModel";
 import MissingEndList from "./MissingEndList";
+import MissingStartList from "./MissingStartList";
 
 type Props = {
   record: PendingRecord;
@@ -111,6 +112,7 @@ export default function PendingRecordCard({ record }: Props) {
           </Button>
         </div>
       </div>
+      <MissingStartList record={record} />
       <MissingEndList record={record} />
       {record.kind === "prime" && (
         <p className="text-xs text-muted-foreground">
